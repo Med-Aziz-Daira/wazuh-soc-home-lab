@@ -1,0 +1,22 @@
+# Secrets / credentials
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Logs / dumps
+*.log
+*.pcap
+*.pcapng
+*.dmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
