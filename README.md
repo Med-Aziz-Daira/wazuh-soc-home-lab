@@ -15,8 +15,8 @@ The final addresses will be confirmed after the VMware virtual network is create
 
 ## Project phases
 
-- [ ] Phase 0 — Define scope, safety rules, and success criteria
-- [ ] Phase 1 — Install VMware and build an isolated network
+- [x] Phase 0 — Define scope, safety rules, and success criteria
+- [x] Phase 1 — Install VMware and build an isolated network
 - [ ] Phase 2 — Install and baseline the three virtual machines
 - [ ] Phase 3 — Deploy Wazuh and enroll the Windows agent
 - [ ] Phase 4 — Add endpoint telemetry and malware-detection controls
@@ -42,4 +42,3 @@ All tests must remain inside the private lab and use safe simulations or inert t
 - [Architecture and setup](docs/01-architecture-and-setup.md)
 - [Evidence log](docs/evidence-log.md)
 - [Final report draft](report/report.md)
-

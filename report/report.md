@@ -1,7 +1,7 @@
 # Design and Implementation of a Wazuh-Based SOC Home Lab for Threat Hunting and Malware Detection
 
 **Author:** TBD  
-**Date:** TBD  
+**Date:** 15 September 2026
 
 ## Abstract
 
@@ -51,11 +51,45 @@ TBD
 
 ### 3.1 Hardware and software requirements
 
-TBD
+The physical host provides an Intel Core i5-12450H processor with eight cores
+and twelve logical processors, 16 GB of RAM, hardware virtualization support,
+and approximately 200 GB of free storage at the start of implementation.
+VMware Workstation Pro provides the virtualization platform.
+
+Ubuntu Server 24.04.3 LTS (`amd64`) was selected for the Wazuh server. The
+downloaded 3,303,444,480-byte ISO produced the following local SHA-256
+baseline:
+
+```text
+C3514BF0056180D09376462A7A1B4F213C1D6E8EA67FAE5C25099C6FD3D8274B
+```
+
+This value must be compared with Ubuntu's published checksum before the ISO
+is trusted for installation.
+
+The Windows endpoint uses the 64-bit English Windows 11 25H2 installation
+image `Win11_25H2_English_x64.iso`. Its 7,736,125,440-byte download was
+recorded with SHA-256 digest
+`D141F6030FED50F75E2B03E1EB2E53646C4B21E5386047CB860AF5223F102A32`
+for reproducibility and later integrity checks.
 
 ### 3.2 Network design and isolation
 
-TBD
+The laboratory uses VMware `VMnet2`, configured as a host-only network with
+the subnet `192.168.50.0/24`. The VMware host adapter is connected to this
+segment, while VMware DHCP is disabled so that every laboratory system can
+use a documented static address. The Windows host received
+`192.168.50.1/24`; the adapter has no default gateway because `VMnet2` is not
+an Internet-facing network.
+
+This design keeps authorized attack simulations away from the physical LAN.
+VMware's separate NAT network (`VMnet8`) will be used only temporarily for
+operating-system updates and software installation. The Kali attack host will
+not be attached to a bridged interface.
+
+![VMware host-only SOC-LAB network configuration](../evidence/screenshots/EV-001-vmnet2-isolated-network.png)
+
+*Figure 1: `VMnet2` configured as the isolated SOC-LAB network (EV-001).*
 
 ### 3.3 Risk assessment
 
@@ -65,7 +99,62 @@ TBD
 
 ### 4.1 Virtual environment
 
-TBD
+The Wazuh server virtual machine was created as `Wazuh-Server` with four CPU
+cores, 6 GB of RAM, and an 80 GB thin-provisioned virtual disk. Its primary
+network adapter connects to the isolated `VMnet2` segment. A second NAT
+adapter is available temporarily for installation, system updates, and
+package retrieval; it will not be used for attack simulations.
+
+![Wazuh server virtual-machine hardware and network adapters](../evidence/screenshots/EV-002-wazuh-vm-network-hardware.png)
+
+*Figure 2: Initial Wazuh server hardware and network configuration (EV-002).*
+
+The final VMware creation summary provides a second record of the allocated
+disk, memory, processors, guest operating-system type, and both network
+connections (EV-003).
+
+During installation, the isolated interface `ens33` was assigned the static
+address `192.168.50.10/24`. The temporary NAT interface `ens34` obtained
+`192.168.247.143/24` through DHCP and supplied Internet access for updates.
+
+![Ubuntu Server dual-interface network configuration](../evidence/screenshots/EV-004-ubuntu-network-configuration.png)
+
+*Figure 3: Static SOC-LAB and temporary NAT interfaces during installation (EV-004).*
+
+The standard Ubuntu Server installation included OpenSSH Server and the
+security updates available during installation. The installer completed
+successfully before the server's first reboot (EV-005).
+
+Post-installation validation confirmed the hostname `wazuh-manager`, the
+planned static address, temporary NAT connectivity, approximately 79 GB of
+root storage, 6 GB of allocated memory, an active SSH service, and the
+`Africa/Tunis` timezone.
+
+![Ubuntu Server post-installation validation](../evidence/screenshots/EV-006-ubuntu-post-install-validation.png)
+
+*Figure 4: Wazuh server baseline after Ubuntu installation (EV-006).*
+
+The physical Windows host then reached TCP port 22 on `192.168.50.10` through
+the `VMnet2` adapter. The successful test, sourced from `192.168.50.1`,
+validated both private-network routing and availability of the Ubuntu SSH
+service (EV-007).
+
+Before snapshotting, the server was upgraded and rebooted into kernel
+`6.8.0-139-generic`. SSH and `open-vm-tools` were active. Four related Netplan
+patch packages remained eligible for Ubuntu's phased-update rollout, while
+`apt-mark showhold` returned no held packages. This did not prevent baseline
+creation or affect the static lab configuration (EV-008).
+
+With the server powered off, a VMware snapshot named
+`00-clean-os-updated` was created. This recovery point allows the Ubuntu
+baseline to be restored if Wazuh deployment or later configuration changes
+fail (EV-009).
+
+The monitored Windows endpoint was created as `Windows11-Victim` with two CPU
+cores, 4 GB of RAM, and a 64 GB thin-provisioned split disk. Like the Ubuntu
+server, it uses `VMnet2` for isolated lab traffic and a second NAT adapter for
+temporary installation and updates. The VM uses UEFI Secure Boot and an
+encrypted virtual TPM to meet Windows 11 platform requirements (EV-010).
 
 ### 4.2 Wazuh deployment
 
@@ -127,7 +216,15 @@ TBD
 
 ### Appendix A — Address plan
 
-TBD
+| System | Role | Address |
+|---|---|---|
+| Windows physical host | VMware host and dashboard access | `192.168.50.1/24` |
+| Ubuntu Server | Wazuh manager, indexer, and dashboard | `192.168.50.10/24` |
+| Windows 11 VM | Monitored endpoint | `192.168.50.20/24` |
+| Kali Linux VM | Authorized simulation host | `192.168.50.30/24` |
+
+The virtual-machine addresses remain planned until connectivity validation is
+completed. The host address was verified after creating `VMnet2`.
 
 ### Appendix B — Configuration excerpts
 
@@ -136,4 +233,3 @@ TBD
 ### Appendix C — Detection test matrix
 
 TBD
-
