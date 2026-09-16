@@ -182,6 +182,26 @@ After powering off the endpoint, a VMware snapshot named
 This preserves a clean, updated Windows recovery point for later testing and
 configuration rollback (EV-014).
 
+The authorized Kali simulation host was created as `Kali-Attacker` with two
+CPU cores, 2 GB of RAM, and a 40 GB thin-provisioned disk. Its primary adapter
+connects to isolated `VMnet2`; a second NAT adapter is available only for
+installation and updates (EV-015).
+
+After installation, Kali's `eth0` interface was assigned
+`192.168.50.30/24` and saved as `SOC-LAB`, while DHCP-configured
+`eth1` was labeled `TEMP-NAT`. Only `TEMP-NAT` carried a default route,
+preventing the isolated interface from routing attack traffic outside the
+lab (EV-016).
+
+Kali was fully upgraded and rebooted into kernel `7.1.5+kali-amd64` with no
+pending packages. Baseline validation showed 15 GB of free root storage,
+approximately 1 GB of available memory, active `open-vm-tools`, the
+`Africa/Tunis` timezone, and both expected IPv4 addresses (EV-017).
+
+With Kali powered off, the snapshot `00-clean-os-updated` was created before
+any authorized simulation activity. It provides a clean recovery point for
+repeatable attack scenarios and cleanup (EV-018).
+
 ### 4.2 Wazuh deployment
 
 TBD

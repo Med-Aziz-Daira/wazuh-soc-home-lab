@@ -17,7 +17,7 @@ The final addresses will be confirmed after the VMware virtual network is create
 
 - [x] Phase 0 — Define scope, safety rules, and success criteria
 - [x] Phase 1 — Install VMware and build an isolated network
-- [ ] Phase 2 — Install and baseline the three virtual machines
+- [x] Phase 2 — Install and baseline the three virtual machines
 - [ ] Phase 3 — Deploy Wazuh and enroll the Windows agent
 - [ ] Phase 4 — Add endpoint telemetry and malware-detection controls
 - [ ] Phase 5 — Execute safe adversary simulations
