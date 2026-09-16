@@ -202,13 +202,61 @@ With Kali powered off, the snapshot `00-clean-os-updated` was created before
 any authorized simulation activity. It provides a clean recovery point for
 repeatable attack scenarios and cleanup (EV-018).
 
+Before Wazuh deployment, the Windows victim at `192.168.50.20` successfully
+reached TCP port 22 on the Ubuntu server at `192.168.50.10` through the
+private `SOC-LAB` adapter. This validated the endpoint-to-manager path
+independently of the earlier physical-host test (EV-019).
+
 ### 4.2 Wazuh deployment
 
-TBD
+The official Wazuh 4.14 installation assistant was downloaded from the URL
+published in Wazuh's current quickstart documentation. Before privileged
+execution, the 204 KiB script passed `bash -n` syntax validation and produced
+the following SHA-256 digest:
+
+```text
+8EBE9514688ACE8AF9445805E8887CD491DD9F95FA9D421A70F0EA012AB06F3A
+```
+
+The first deployment attempt installed the indexer but failed when Ubuntu's
+`unattended-upgr` process acquired the `dpkg` frontend lock immediately before
+manager installation. Disk capacity, memory, and service health remained
+normal. After the updater exited, the VM was restored to its clean snapshot;
+automatic update timers were temporarily disabled, and the verified installer
+was run again. This avoided modifying or forcibly deleting package-manager
+lock files (EV-020).
+
+The second attempt completed successfully and deployed Wazuh 4.14.7. Service
+validation confirmed that `wazuh-manager`, `wazuh-indexer`,
+`wazuh-dashboard`, and `filebeat` were active. The server listened on TCP
+ports 443 (dashboard), 1514 (agent events), 1515 (agent enrollment), and
+55000 (Wazuh API). The generated credential and certificate archive was
+restricted to root access and excluded from project evidence and Git
+(EV-021).
+
+The dashboard was then reached from the physical host over HTTPS at
+`192.168.50.10`. Its initial overview confirmed that the Wazuh application
+was operational and that no endpoint agents were registered before Windows
+enrollment (EV-022).
 
 ### 4.3 Windows agent and telemetry configuration
 
-TBD
+The dashboard deployment wizard generated the Windows MSI command for Wazuh
+agent 4.14.7. It configured `192.168.50.10` as the manager and
+`WIN11-VICTIM` as the agent name. The installer ran from an elevated
+PowerShell session, after which the `WazuhSvc` service reported a `Running`
+state (EV-023).
+
+The dashboard subsequently reported agent ID `001` as active, with the name
+`WIN11-VICTIM`, address `192.168.50.20`, Windows 11 Pro operating system,
+agent version 4.14.7, and membership in the `default` group. This completed
+bidirectional enrollment validation from both the endpoint service and the
+manager dashboard perspectives (EV-024).
+
+Finally, both VMs were powered off and captured as a coordinated recovery
+pair: server snapshot `01-wazuh-deployed-agent-enrolled` and endpoint snapshot
+`01-wazuh-agent-enrolled`. They must be restored together so the manager and
+agent retain matching enrollment keys and state (EV-025 and EV-026).
 
 ### 4.4 Detection and enrichment configuration
 
