@@ -73,6 +73,11 @@ recorded with SHA-256 digest
 `D141F6030FED50F75E2B03E1EB2E53646C4B21E5386047CB860AF5223F102A32`
 for reproducibility and later integrity checks.
 
+The authorized simulation host uses the 64-bit Kali Linux 2025.4 installer
+`kali-linux-2025.4-installer-amd64.iso`. The 4,733,116,416-byte image was
+recorded with SHA-256 digest
+`3B4A3A9F5FB6532635800D3EDA94414FB69A44165AF6DB6FA39C0BDAE750C266`.
+
 ### 3.2 Network design and isolation
 
 The laboratory uses VMware `VMnet2`, configured as a host-only network with
@@ -155,6 +160,27 @@ cores, 4 GB of RAM, and a 64 GB thin-provisioned split disk. Like the Ubuntu
 server, it uses `VMnet2` for isolated lab traffic and a second NAT adapter for
 temporary installation and updates. The VM uses UEFI Secure Boot and an
 encrypted virtual TPM to meet Windows 11 platform requirements (EV-010).
+
+After installation, the endpoint was named `WIN11-VICTIM`. Its isolated
+adapter was renamed `SOC-LAB`, assigned `192.168.50.20/24`, and classified as
+a private Windows network. Its second adapter, `TEMP-NAT`, received
+`192.168.247.145/24` and was the only interface with a default gateway and
+Internet connectivity (EV-011).
+
+Windows Update was run repeatedly after VMware Tools installation and reboot
+until it reported that the endpoint was up to date. The option to receive
+early non-security updates remained disabled (EV-012).
+
+The endpoint runs Windows 11 Pro build 26200 with a Tunis-compatible Windows
+timezone. Platform and protection checks confirmed UEFI Secure Boot, a
+present and ready TPM, automatic VMware Tools and Defender services, and
+enabled Defender antivirus, real-time protection, and behavior monitoring
+(EV-013).
+
+After powering off the endpoint, a VMware snapshot named
+`00-clean-os-updated` was created before installing the Wazuh agent or Sysmon.
+This preserves a clean, updated Windows recovery point for later testing and
+configuration rollback (EV-014).
 
 ### 4.2 Wazuh deployment
 
