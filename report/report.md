@@ -41,7 +41,13 @@ TBD
 
 ### 2.3 Endpoint telemetry and Sysmon
 
-TBD
+Sysmon is a Microsoft Sysinternals service and kernel driver that records
+high-value endpoint activity in the Windows event log. Depending on its XML
+configuration, it can capture process creation, network connections, file
+creation, registry modification, DNS queries, and other behavior that is not
+available in sufficient detail from default Windows logging. Wazuh can ingest
+the `Microsoft-Windows-Sysmon/Operational` event channel and apply native
+rules to this telemetry.
 
 ### 2.4 MITRE ATT&CK
 
@@ -252,6 +258,38 @@ The dashboard subsequently reported agent ID `001` as active, with the name
 agent version 4.14.7, and membership in the `default` group. This completed
 bidirectional enrollment validation from both the endpoint service and the
 manager dashboard perspectives (EV-024).
+
+For enhanced telemetry, Sysmon 15.22 was downloaded directly from Microsoft
+Sysinternals. The 2,938,038-byte ZIP produced SHA-256 digest
+`00ECF1B46AEC99299D3AE0BCA79DC621458BD014B20B509D7C5C8E8C8611AA54`.
+Before installation, the extracted 64-bit executable's Authenticode signature
+was validated as `Microsoft Windows Publisher` (EV-027).
+
+The initial ruleset uses the community-maintained SwiftOnSecurity baseline
+configuration. The 123,257-byte XML file produced SHA-256 digest
+`055FEBC600E6D7448CDF3812307275912927A62B1F94D0D933B64B294BC87162`.
+It declares Sysmon schema 4.50, which remains compatible with Sysmon 15.22 but
+does not expose every event type added by newer schemas. This version is used
+for the core lab scenarios and is recorded as a limitation for later tuning.
+
+Sysmon accepted the configuration, installed its service and kernel driver,
+and started automatically. The `Microsoft-Windows-Sysmon/Operational` channel
+was enabled and immediately contained process-creation Event ID 1 records,
+confirming local telemetry generation before Wazuh ingestion was enabled
+(EV-028).
+
+The Wazuh agent's local configuration did not initially reference Sysmon.
+Collection was therefore enabled centrally for Windows members of the
+`default` group through a shared `agent.conf`. Wazuh's
+`verify-agent-conf` utility validated the XML before distribution. The exact
+configuration is preserved in `configs/wazuh/default-agent.conf`.
+
+After agent synchronization and service restart, the Windows Wazuh log
+explicitly reported that it was analyzing the
+`Microsoft-Windows-Sysmon/Operational` channel. This confirmed that the
+central configuration reached the endpoint and activated collection
+(EV-029). Dashboard event validation and malware-control configuration remain
+the next Phase 4 tasks.
 
 Finally, both VMs were powered off and captured as a coordinated recovery
 pair: server snapshot `01-wazuh-deployed-agent-enrolled` and endpoint snapshot
