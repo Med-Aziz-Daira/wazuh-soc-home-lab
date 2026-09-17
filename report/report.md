@@ -284,12 +284,42 @@ Collection was therefore enabled centrally for Windows members of the
 `verify-agent-conf` utility validated the XML before distribution. The exact
 configuration is preserved in `configs/wazuh/default-agent.conf`.
 
+The central policy was then extended to ingest the Microsoft Defender
+operational channel and enable real-time, change-reporting file integrity
+monitoring for `C:\SOC-Lab\FIM`. After synchronization, the endpoint log
+confirmed both event channels and the FIM directory were active (EV-031).
+
 After agent synchronization and service restart, the Windows Wazuh log
 explicitly reported that it was analyzing the
 `Microsoft-Windows-Sysmon/Operational` channel. This confirmed that the
 central configuration reached the endpoint and activated collection
-(EV-029). Dashboard event validation and malware-control configuration remain
-the next Phase 4 tasks.
+(EV-029).
+
+End-to-end validation launched a harmless child PowerShell process containing
+the unique marker `WAZUH_SYSMON_PHASE4_TEST_20260917`. Sysmon recorded process
+creation Event ID 1, and Wazuh generated rule `92027` (`Powershell process
+spawned powershell instance`) at level 4. A query combining agent name, event
+ID, and command-line marker returned exactly one matching record (EV-030).
+This behavior maps to MITRE ATT&CK T1059.001, PowerShell.
+
+Real-time file integrity monitoring was validated independently by creating
+`C:\SOC-Lab\FIM\phase4-fim-test.txt`. Wazuh returned exactly one matching
+event for `WIN11-VICTIM`, classified as `File added to the system` by rule
+`554` at level 5 (EV-032). This demonstrates that changes under the centrally
+configured monitored directory reach the manager and become searchable.
+
+Microsoft Defender real-time protection was tested with the official,
+non-replicating EICAR antivirus test file. Defender recorded Event ID 1116,
+identified `Virus:DOS/EICAR_Test_File`, assigned Severe severity, and reported
+the local test path (EV-033). The centrally collected Defender event then
+appeared in Wazuh for `WIN11-VICTIM` as rule `62123` at level 12 (EV-034),
+confirming end-to-end antimalware telemetry and alerting.
+
+After the test artifacts were removed, the server and endpoint were powered
+off and captured as the coordinated snapshot pair
+`02-endpoint-telemetry-validated` (EV-035 and EV-036). These snapshots must be
+restored together to preserve matching manager, agent, and shared-policy
+state.
 
 Finally, both VMs were powered off and captured as a coordinated recovery
 pair: server snapshot `01-wazuh-deployed-agent-enrolled` and endpoint snapshot
@@ -298,7 +328,12 @@ agent retain matching enrollment keys and state (EV-025 and EV-026).
 
 ### 4.4 Detection and enrichment configuration
 
-TBD
+Phase 4 used Wazuh's built-in Windows, Sysmon, Defender, and syscheck rules.
+The validation events exercised rules `92027`, `554`, and `62123` at levels
+4, 5, and 12 respectively. Custom rule tuning and optional enrichment are
+deferred until the controlled Phase 5 simulations provide representative
+events for Phase 6 investigation and tuning. No automated active response was
+enabled during this baseline phase.
 
 ## 5. Detection Scenarios
 
